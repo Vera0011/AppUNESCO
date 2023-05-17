@@ -14,6 +14,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Code Controller for interactions (or events) of the Application
+ *
+ * @author Vera
+ * */
+
 public class CodeController
 {
     private static String host = "bolt://localhost:7687";
@@ -21,7 +27,12 @@ public class CodeController
     private static String password = "12345678";
 
     /**
-     * Open or close the search panel
+     * Open or close the right panel (options panel)
+     *
+     * @param rightPanel A VBox of the panel
+     * @param root The main BorderPane (first child of the Scene)
+     *
+     * @see avera.interfaces.GuiController
      * */
     public static void displayRightPanel(VBox rightPanel, BorderPane root)
     {
@@ -40,7 +51,13 @@ public class CodeController
     }
 
     /**
-     * Get all the content of the database
+     * Creates all the grids displayed in the main Scene (in GridPane)
+     *
+     * @param grid The GridPane where the contents are located
+     * @return GridPane Returns the same GridPane as the param, but modified
+     *
+     * @see avera.interfaces.GuiController
+     * @see avera.database.DatabaseManager
      * */
     public static GridPane createGridContent(GridPane grid)
     {
@@ -111,15 +128,12 @@ public class CodeController
     }
 
     /**
-     * Instantiate the database
+     * Start the connection to the database
+     *
+     * @see avera.database.DatabaseManager
      * */
     public static void initiateDatabase()
     {
         DatabaseManager.startConnection(host, user, password);
-    }
-
-    public static void getDetails(String key)
-    {
-
     }
 }

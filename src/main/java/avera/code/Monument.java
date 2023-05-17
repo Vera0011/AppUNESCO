@@ -1,5 +1,10 @@
 package avera.code;
 
+/**
+ * Class creating a Monument Object
+ *
+ * @author Vera
+ * */
 public class Monument
 {
     private String name;
@@ -12,6 +17,18 @@ public class Monument
     private String stateMonument;
     private String description;
 
+    /**
+     * Class Constructor.
+     * @param name Name of the monument
+     * @param description Description of the monument
+     * @param location Location of the monument. Can be blank
+     * @param category Category of the monument
+     * @param httpLink Link referencing UNESCO webpage
+     * @param latitude Geographic latitude of the monument
+     * @param longitude Geographic longitude of the monument
+     * @param regionMonument Regions that contains this monument
+     * @param stateMonument State that contains this monument
+     * */
     public Monument(String name, String description, String location, String category, String httpLink, double latitude, double longitude, String regionMonument, String stateMonument)
     {
         this.name = name;

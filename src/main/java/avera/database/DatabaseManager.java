@@ -12,18 +12,31 @@ import java.util.*;
 
 import static org.neo4j.driver.Values.parameters;
 
+
+/**
+ * Class charged of database management
+ *
+ * @author Vera
+ * */
 public abstract class DatabaseManager implements AutoCloseable
 {
     private static Driver driver;
     private static final String database = "neo4j";
-    private static final List<Monument> listadoMonumentos = XMLParser.parseFile();
+    private static List<Monument> listadoMonumentos;
 
     /**
      * Open connection to database
+     *
+     * @param host URL of the host that contains the database
+     * @param user User credential
+     * @param password Password credential
      * */
     public static void startConnection(String host, String user, String password)
     {
         driver = GraphDatabase.driver(host, AuthTokens.basic(user, password));
+        listadoMonumentos = XMLParser.parseFile();
+
+        createDatabase();
     }
 
     /**
@@ -36,7 +49,7 @@ public abstract class DatabaseManager implements AutoCloseable
     }
 
     /**
-     * Create database if not exists
+     * Initial modifiers of the database
      * */
     public static void createDatabase()
     {
@@ -49,7 +62,9 @@ public abstract class DatabaseManager implements AutoCloseable
     }
 
     /**
-     * Insert initial data in database (from file)
+     * Insert initial data in database (from XML file)
+     *
+     * @see avera.parsers.XMLParser
      * */
     public static void insertInitialData()
     {
@@ -77,19 +92,23 @@ public abstract class DatabaseManager implements AutoCloseable
     }
 
     /**
-     * Create relations between the data in database (from file)
+     * Create relations between the data in database (from XML file)
+     *
+     * @see avera.parsers.XMLParser
      * */
     public static void createRelations()
     {
-        TreeSet<String> monumentosVisitados = new TreeSet<>();
+        HashSet<String> monumentosVisitados = new HashSet<>();
 
         try(Session session = driver.session())
         {
             for (int i = 0; i < listadoMonumentos.size(); i++)
             {
-                for (int j = i; j < listadoMonumentos.size(); j++)
+                monumentosVisitados.add(listadoMonumentos.get(i).getName());
+
+                for (int j = 0; j < listadoMonumentos.size(); j++)
                 {
-                    if(!monumentosVisitados.contains(listadoMonumentos.get(i).getName()))
+                    if(!monumentosVisitados.contains(listadoMonumentos.get(j).getName()))
                     {
                         int finalI = i;
                         int finalJ = j;
@@ -97,18 +116,22 @@ public abstract class DatabaseManager implements AutoCloseable
                         {
                             tx.run("MATCH (n:Monument), (m:Monument) WHERE n.name = $node1 AND m.name = $node2 CREATE (n)-[:DISTANCE {km: $distance, time: $time}]->(m)",
                                     parameters("node1", listadoMonumentos.get(finalI).getName(),
-                                            "node2", listadoMonumentos.get(finalJ).getName(), "distance", calculateDistance(listadoMonumentos.get(finalI), listadoMonumentos.get(finalJ))[0],
-                                            "miliseconds", calculateDistance(listadoMonumentos.get(finalI), listadoMonumentos.get(finalJ))[1]));
+                                            "node2", listadoMonumentos.get(finalJ).getName(), "distance", 10,
+                                            "time", 10));
                             System.out.println("Creada la relación entre " + listadoMonumentos.get(finalI).getName() + " y " + listadoMonumentos.get(finalJ).getName());
                         });
                     }
                 }
-
-                monumentosVisitados.add(listadoMonumentos.get(i).getName());
             }
         }
     }
 
+    /**
+     * Calculate distance between two monument coordinates (using Google Maps API)
+     *
+     * @param n Monument 1
+     * @param m Monument 2
+     * */
     private static double[] calculateDistance(Monument n, Monument m)
     {
         /*OkHttpClient client = new OkHttpClient().newBuilder().build();
@@ -129,7 +152,7 @@ public abstract class DatabaseManager implements AutoCloseable
     }*/
 
     /**
-     * Clean database
+     * Clean all nodes and relations from the database
      * */
     public static void cleanDatabase()
     {
@@ -144,8 +167,12 @@ public abstract class DatabaseManager implements AutoCloseable
     }
 
     /**
-     * Make a query
+     * Make a query in the database
      *
+     * @param query Query in String
+     * @param type Type of the query
+     *
+     * @throws ClientException If the query is invalid
      * @return ArrayList of the query
      * */
     public static Map<String, List<String>> query(String query, String type) throws ClientException
@@ -187,7 +214,6 @@ public abstract class DatabaseManager implements AutoCloseable
 
     public static void main (String[] args) throws IOException {
         startConnection("bolt://localhost:7687", "neo4j", "12345678");
-        createDatabase();
         insertInitialData();
         //createRelations();
 

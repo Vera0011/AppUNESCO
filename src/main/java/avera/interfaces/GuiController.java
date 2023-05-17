@@ -7,12 +7,20 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+/**
+ * Creation of the main Application
+ *
+ * @author Vera
+ * */
+
 public class GuiController extends Application
 {
     private BorderPane root;
 
     /**
-     * Creating Application
+     * Creating Application and main Stage
+     *
+     * @param stage Stage of the main Application
      * */
     @Override
     public void start(Stage stage)
@@ -32,7 +40,10 @@ public class GuiController extends Application
     }
 
     /**
-     * Starting Application
+     * Running the Applications
+     *
+     * @param args The arguments passed by the Application
+     * @see Application
      * */
     public static void runApplication(String[] args)
     {

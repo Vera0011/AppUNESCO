@@ -14,9 +14,21 @@ import avera.code.Monument;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
+/**
+ * Parser for converting XML file to Monuments Class
+ *
+ * @author Vera
+ * */
+
 public class XMLParser
 {
     private static final String pathToXMLFile = "src/main/resources/dataMonuments.xml";
+
+    /**
+     * Parser function
+     *
+     * @return List A list of the Monuments generated from the XML file
+     * */
     public static List<Monument> parseFile()
     {
         File xmlFile = new File(pathToXMLFile);
@@ -77,13 +89,5 @@ public class XMLParser
         }
 
         return newMonument;
-    }
-
-    public static void main(String[] args)
-    {
-        for (Monument item: parseFile())
-        {
-            System.out.println(item);
-        }
     }
 }

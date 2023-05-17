@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"avera.code"},{"l":"avera.database"},{"l":"avera.interfaces"},{"l":"avera.interfaces.scenes"},{"l":"avera.main"},{"l":"avera.parsers"}];updateSearchResults();

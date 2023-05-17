@@ -10,13 +10,21 @@ import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 
+/**
+ * Creator of the main Scene
+ *
+ * @author Vera
+ * */
+
 public class MainScene extends GuiController
 {
     private BorderPane mainPanel;
     private static VBox rightPanel;
 
     /**
-     * Creating GUI in Application
+     * Scene creator for the GUI
+     *
+     * @return Returns a BorderPane to include in the Scene of the window
      * */
     public BorderPane createGui()
     {
@@ -30,7 +38,9 @@ public class MainScene extends GuiController
     }
 
     /**
-     * Creating the top of the App
+     * Create the top contents of the Scene
+     *
+     * @return A HBOX to include in the Scene
      * */
     protected HBox createTop()
     {
@@ -67,7 +77,9 @@ public class MainScene extends GuiController
     }
 
     /**
-     * Creating the center of the App
+     * Create the center contents of the Scene
+     *
+     * @return A GridPane to include in the Scene
      * */
     protected GridPane createCenter()
     {
@@ -99,7 +111,9 @@ public class MainScene extends GuiController
     }
 
     /**
-     * Creating the bottom of the App
+     * Create the bottom contents of the Scene
+     *
+     * @return A HBOX to include in the Scene
      * */
     protected HBox createBottom()
     {
@@ -130,7 +144,9 @@ public class MainScene extends GuiController
     }
 
     /**
-     * Creating the right side of the App
+     * Create the right contents of the Scene (options bar)
+     *
+     * @return A VBox to include in the Scene
      * */
     public static VBox createRight()
     {
