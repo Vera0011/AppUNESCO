@@ -7,4 +7,4 @@ Código en los paquetes para fase de inicio:
 - src.main.java.avera.parsers
 ```
 
-## Para ver la documentación, consultar [Aquí](docs)
+## Para ver la documentación, consultar [aqui](docs)
