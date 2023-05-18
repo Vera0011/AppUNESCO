@@ -1,11 +1,11 @@
 package avera.database;
 import avera.code.Monument;
 import avera.parsers.XMLParser;
-//import okhttp3.*;
+import io.github.cdimascio.dotenv.Dotenv;
+import okhttp3.*;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
-
 
 import java.io.IOException;
 import java.util.*;
@@ -21,8 +21,9 @@ import static org.neo4j.driver.Values.parameters;
 public abstract class DatabaseManager implements AutoCloseable
 {
     private static Driver driver;
-    private static final String database = "neo4j";
     private static List<Monument> listadoMonumentos;
+    private static OkHttpClient client = new OkHttpClient();
+    private static Dotenv dotenv = Dotenv.load();
 
     /**
      * Open connection to database
@@ -36,7 +37,8 @@ public abstract class DatabaseManager implements AutoCloseable
         driver = GraphDatabase.driver(host, AuthTokens.basic(user, password));
         listadoMonumentos = XMLParser.parseFile();
 
-        createDatabase();
+        //createDatabase();
+        System.out.println("Conexión a la base de datos exitosa");
     }
 
     /**
@@ -48,24 +50,24 @@ public abstract class DatabaseManager implements AutoCloseable
         driver.close();
     }
 
-    /**
+    /*
      * Initial modifiers of the database
-     * */
+     *
     public static void createDatabase()
     {
         try (var session = driver.session())
         {
-            session.run(new Query("CREATE DATABASE " + database + " IF NOT EXISTS"));
+            //session.run(new Query("CREATE DATABASE " + database + " IF NOT EXISTS"));
             session.run(new Query("CREATE CONSTRAINT  IF NOT EXISTS FOR (mon:Monument) REQUIRE mon.name IS UNIQUE"));
-            //session.run(new Query("CREATE CONSTRAINT IF NOT EXISTS FOR (mon:Monument) REQUIRE EXISTS(mon.name)"));
+            //session.run(new Query("CREATE CONSTRAINT IF NOT EXISTS FOR (mon:Monument) REQUIRE EXISTS (mon.name)"));
         }
-    }
+    }*/
 
-    /**
+    /*
      * Insert initial data in database (from XML file)
      *
      * @see avera.parsers.XMLParser
-     * */
+     *
     public static void insertInitialData()
     {
         try (Session session = driver.session())
@@ -89,7 +91,7 @@ public abstract class DatabaseManager implements AutoCloseable
         {
             System.out.println("Error al introducir datos: " + e.getMessage());
         }
-    }
+    }*/
 
     /**
      * Create relations between the data in database (from XML file)
@@ -112,14 +114,16 @@ public abstract class DatabaseManager implements AutoCloseable
                     {
                         int finalI = i;
                         int finalJ = j;
+                        /*double[] distancesAndTime = calculateDistance(listadoMonumentos.get(finalI), listadoMonumentos.get(finalJ));
+
                         session.executeWriteWithoutResult(tx ->
                         {
                             tx.run("MATCH (n:Monument), (m:Monument) WHERE n.name = $node1 AND m.name = $node2 CREATE (n)-[:DISTANCE {km: $distance, time: $time}]->(m)",
                                     parameters("node1", listadoMonumentos.get(finalI).getName(),
-                                            "node2", listadoMonumentos.get(finalJ).getName(), "distance", 10,
-                                            "time", 10));
-                            System.out.println("Creada la relación entre " + listadoMonumentos.get(finalI).getName() + " y " + listadoMonumentos.get(finalJ).getName());
-                        });
+                                            "node2", listadoMonumentos.get(finalJ).getName(), "distance", (distancesAndTime[0] / 1000),
+                                            "time", distancesAndTime[1]));
+                            System.out.println("Creada la relaci?n entre " + listadoMonumentos.get(finalI).getName() + " y " + listadoMonumentos.get(finalJ).getName());
+                        });*/
                     }
                 }
             }
@@ -132,24 +136,36 @@ public abstract class DatabaseManager implements AutoCloseable
      * @param n Monument 1
      * @param m Monument 2
      * */
-    private static double[] calculateDistance(Monument n, Monument m)
+    private static double[] calculateDistance(Monument n, Monument m, Monument n2)
     {
-        /*OkHttpClient client = new OkHttpClient().newBuilder().build();
-        MediaType mediaType = MediaType.parse("text/plain");
-        RequestBody body = RequestBody.create(mediaType, "");
-        Request request = new Request.Builder()
-                .url("https://maps.googleapis.com/maps/api/distancematrix/json?origins=Washington%2C%20DC&destinations=New%20York%20City%2C%20NY&units=imperial&key=YOUR_API_KEY")
-                .method("GET", body)
-                .build();
-        Response response = client.newCall(request).execute();*/
+        double latitudeN = n.getLatitude();
+        double longitudeN = n.getLongitude();
 
-        return new double[]{0.0};
+        double latitudeM = m.getLatitude();
+        double longitudeM = m.getLongitude();
+
+        double latituden2 = n2.getLatitude();
+        double longituden2 = n2.getLongitude();
+
+        String url="https://maps.googleapis.com/maps/api/distancematrix/xml" +
+                "?origins=" + latitudeN + "," + longitudeN + "" +
+                "&destinations=" + latitudeM + "," + longitudeM + "|" +
+                latituden2 + "," + longituden2 + "" +
+                "&units=imperial&language=es&key="+ dotenv.get("GOOGLE_API");
+        Request request = new Request.Builder().url(url).build();
+
+        try(Response response = client.newCall(request).execute())
+        {
+            System.out.println(response.body().string());
+            //return XMLParser.parsePetition(response.body());
+        }
+        catch (IOException | NullPointerException e)
+        {
+            System.out.println("Error al obtener datos: " + e.getMessage());
+        }
+
+        return new double[]{ 0, 0 };
     }
-
-    /*private static double calculateTime()
-    {
-
-    }*/
 
     /**
      * Clean all nodes and relations from the database
@@ -213,10 +229,10 @@ public abstract class DatabaseManager implements AutoCloseable
     }
 
     public static void main (String[] args) throws IOException {
-        startConnection("bolt://localhost:7687", "neo4j", "12345678");
-        insertInitialData();
+        Dotenv dotenv = Dotenv.load();
+        startConnection(dotenv.get(""), dotenv.get(""), dotenv.get(""));
+        System.out.println(dotenv.get("GOOGLE_API"));
         //createRelations();
-
         //cleanDatabase();
     }
 }

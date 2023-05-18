@@ -3,13 +3,13 @@ package avera.interfaces;
 import avera.database.DatabaseManager;
 import avera.interfaces.scenes.DescriptionScene;
 import avera.interfaces.scenes.MainScene;
+import io.github.cdimascio.dotenv.Dotenv;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +22,7 @@ import java.util.Map;
 
 public class CodeController
 {
-    private static String host = "bolt://localhost:7687";
-    private static String user = "neo4j";
-    private static String password = "12345678";
+    private static Dotenv dotenv = Dotenv.load();
 
     /**
      * Open or close the right panel (options panel)
@@ -134,6 +132,6 @@ public class CodeController
      * */
     public static void initiateDatabase()
     {
-        DatabaseManager.startConnection(host, user, password);
+        DatabaseManager.startConnection(dotenv.get("NEO4J_URI"), dotenv.get("NEO4J_USERNAME"), dotenv.get("NEO4J_PASSWORD"));
     }
 }

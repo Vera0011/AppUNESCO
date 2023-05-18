@@ -9,8 +9,10 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
 
 import avera.code.Monument;
+import okhttp3.ResponseBody;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -89,5 +91,11 @@ public class XMLParser
         }
 
         return newMonument;
+    }
+
+    public static double[] parsePetition(ResponseBody response)
+    {
+
+        return new double[] { 0, 0 };
     }
 }
