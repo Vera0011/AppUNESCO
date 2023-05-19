@@ -5,10 +5,7 @@ import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 
-import java.io.IOException;
 import java.util.*;
-
-import static org.neo4j.driver.Values.parameters;
 
 
 /**
@@ -19,7 +16,6 @@ import static org.neo4j.driver.Values.parameters;
 public abstract class DatabaseManager implements AutoCloseable
 {
     private static Driver driver;
-    private static Dotenv dotenv = Dotenv.load();
 
     /**
      * Open connection to database
@@ -31,7 +27,6 @@ public abstract class DatabaseManager implements AutoCloseable
     public static void startConnection(String host, String user, String password)
     {
         driver = GraphDatabase.driver(host, AuthTokens.basic(user, password));
-
         System.out.println("Conexión a la base de datos exitosa");
     }
 
@@ -39,28 +34,10 @@ public abstract class DatabaseManager implements AutoCloseable
      * Close connection to database
      * */
     @Override
-    public void close() throws RuntimeException
+    public void close()
     {
         driver.close();
     }
-
-        /*String url="https://maps.googleapis.com/maps/api/distancematrix/xml" +
-                "?origins=" + latitudeN + "," + longitudeN + "" +
-                "&destinations=" + latitudeM + "," + longitudeM +
-                "&units=imperial&language=es&key="+ dotenv.get("GOOGLE_API");
-        Request request = new Request.Builder().url(url).build();
-
-        try(Response response = client.newCall(request).execute())
-        {
-            System.out.println(response.body().string());
-            //return XMLParser.parsePetition(response.body());
-        }
-        catch (IOException | NullPointerException e)
-        {
-            System.out.println("Error al obtener datos: " + e.getMessage());
-        }
-
-        return new double[]{ 0, 0 };*/
 
     /**
      * Make a query in the database
@@ -71,9 +48,9 @@ public abstract class DatabaseManager implements AutoCloseable
      * @throws ClientException If the query is invalid
      * @return ArrayList of the query
      * */
-    public static Map<String, List<String>> query(String query, String type) throws ClientException
+    public static HashMap<String, List<String>> query(String query, String type) throws ClientException
     {
-        Map<String, List<String>> list = new HashMap<>();
+        HashMap<String, List<String>> list = new HashMap<>();
 
         try(Session session = driver.session())
         {

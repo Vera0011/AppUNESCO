@@ -1,18 +1,16 @@
 package avera.interfaces.scenes;
 
-import avera.interfaces.GuiController;
-import javafx.application.Application;
+import avera.interfaces.CodeController;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
-import javafx.scene.Node;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 /**
  * Modeling the Description Interface (for Monuments)
@@ -30,15 +28,16 @@ public class DescriptionScene
      * */
     public static void openDescriptionWindow(String dataEntryKey)
     {
-        root = createGui(dataEntryKey);
-
-        Scene scene = new Scene(root, 500, 500);
         Stage stage = new Stage();
-        stage.setScene(scene);
+        root = createGui(dataEntryKey, stage);
 
+        Scene scene = new Scene(root, 600, 600);
+        scene.getStylesheets().add(DescriptionScene.class.getResource("/styles.css").toExternalForm());
+
+        stage.setScene(scene);
+        stage.getIcons().add(new Image("/icons/main.png"));
         stage.resizableProperty().setValue(false);
         stage.setTitle("Descripcion del lugar");
-
         stage.show();
     }
 
@@ -48,12 +47,12 @@ public class DescriptionScene
      * @param dataEntryKey The data to be displayed
      * @return Returns a BorderPane to include in the Scene of the window
      * */
-    private static BorderPane createGui (String dataEntryKey)
+    private static BorderPane createGui (String dataEntryKey, Stage stage)
     {
         BorderPane mainPane = new BorderPane();
 
-        mainPane.setTop(createTop());
-        mainPane.setCenter(createCenter());
+        mainPane.setTop(createTop(stage));
+        mainPane.setCenter(createCenter(dataEntryKey));
 
         return mainPane;
     }
@@ -63,9 +62,31 @@ public class DescriptionScene
      *
      * @return A GridPane to include in the Scene
      * */
-    private static GridPane createCenter ()
+    private static GridPane createCenter (String dataEntryKey)
     {
-        return null;
+        GridPane gp = new GridPane();
+
+        gp.setAlignment(Pos.TOP_CENTER);
+        gp.setVgap(5);
+        gp.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        gp.setPadding(new Insets(10));
+
+        /* Constraints */
+        ColumnConstraints colNombre = new ColumnConstraints();
+        ColumnConstraints colValor = new ColumnConstraints();
+
+        colNombre.setHalignment(HPos.CENTER);
+        colNombre.setHgrow(Priority.ALWAYS);
+
+        colValor.setHalignment(HPos.CENTER);
+        colValor.setHgrow(Priority.ALWAYS);
+
+        colNombre.setPrefWidth(10);
+        colValor.setPrefWidth(120);
+
+        gp.getColumnConstraints().addAll(colNombre, colValor);
+
+        return CodeController.createGridContentDescriptionScene(gp, dataEntryKey);
     }
 
     /**
@@ -73,11 +94,11 @@ public class DescriptionScene
      *
      * @return A HBOX to include in the Scene
      * */
-    private static HBox createTop ()
+    private static HBox createTop (Stage stage)
     {
         HBox bottomPanel = new HBox();
         Button btnFowardPage = new Button();
-        ImageView imageButton = new ImageView("/icons/forwardPage.png");
+        ImageView imageButton = new ImageView("icons/fowardPage.png");
 
         imageButton.setFitWidth(25);
         imageButton.setFitHeight(25);
@@ -85,6 +106,8 @@ public class DescriptionScene
         btnFowardPage.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         btnFowardPage.getStyleClass().add("btn");
         btnFowardPage.setGraphic(imageButton);
+
+        btnFowardPage.setOnMouseClicked(event -> CodeController.closeDescriptionWindow(stage));
 
         bottomPanel.getChildren().addAll(btnFowardPage);
         bottomPanel.getStyleClass().add("btn-search-box");
