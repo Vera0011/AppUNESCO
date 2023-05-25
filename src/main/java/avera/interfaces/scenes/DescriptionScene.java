@@ -1,7 +1,5 @@
 package avera.interfaces.scenes;
 
-import avera.interfaces.CodeController;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,14 +8,15 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import avera.interfaces.CodeController;
+import avera.interfaces.Components;
 
 /**
  * Modeling the Description Interface (for Monuments)
  *
  * @author Vera
  * */
-public class DescriptionScene
+public final class DescriptionScene
 {
     private static BorderPane root;
 
@@ -51,7 +50,7 @@ public class DescriptionScene
     {
         BorderPane mainPane = new BorderPane();
 
-        mainPane.setTop(createTop(stage));
+        mainPane.setTop(createTop(dataEntryKey, stage));
         mainPane.setCenter(createCenter(dataEntryKey));
 
         return mainPane;
@@ -64,27 +63,11 @@ public class DescriptionScene
      * */
     private static GridPane createCenter (String dataEntryKey)
     {
-        GridPane gp = new GridPane();
+        GridPane gp = Components.createCenterMain();
 
-        gp.setAlignment(Pos.TOP_CENTER);
-        gp.setVgap(5);
-        gp.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        gp.setPadding(new Insets(10));
-
-        /* Constraints */
-        ColumnConstraints colNombre = new ColumnConstraints();
-        ColumnConstraints colValor = new ColumnConstraints();
-
-        colNombre.setHalignment(HPos.CENTER);
-        colNombre.setHgrow(Priority.ALWAYS);
-
-        colValor.setHalignment(HPos.CENTER);
-        colValor.setHgrow(Priority.ALWAYS);
-
-        colNombre.setPrefWidth(10);
-        colValor.setPrefWidth(120);
-
-        gp.getColumnConstraints().addAll(colNombre, colValor);
+        gp.getColumnConstraints().remove(2);
+        gp.getColumnConstraints().get(0).setPrefWidth(10);
+        gp.getColumnConstraints().get(0).setPrefWidth(120);
 
         return CodeController.createGridContentDescriptionScene(gp, dataEntryKey);
     }
@@ -94,22 +77,36 @@ public class DescriptionScene
      *
      * @return A HBOX to include in the Scene
      * */
-    private static HBox createTop (Stage stage)
+    private static HBox createTop (String dataEntryKey, Stage stage)
     {
         HBox bottomPanel = new HBox();
         Button btnFowardPage = new Button();
+        Pane midPanel = new Pane();
+        Button addButton = new Button();
         ImageView imageButton = new ImageView("icons/fowardPage.png");
+        ImageView imageButton2 = new ImageView("icons/addIcon.png");
 
         imageButton.setFitWidth(25);
         imageButton.setFitHeight(25);
+        imageButton2.setFitWidth(25);
+        imageButton2.setFitHeight(25);
+
+        HBox.setHgrow(midPanel, Priority.ALWAYS);
 
         btnFowardPage.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         btnFowardPage.getStyleClass().add("btn");
         btnFowardPage.setGraphic(imageButton);
+        btnFowardPage.setAlignment(Pos.CENTER_LEFT);
+
+        addButton.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        addButton.getStyleClass().add("btn");
+        addButton.setGraphic(imageButton2);
+        addButton.setAlignment(Pos.CENTER_RIGHT);
 
         btnFowardPage.setOnMouseClicked(event -> CodeController.closeDescriptionWindow(stage));
+        addButton.setOnMouseClicked(event -> CodeController.addRoute(dataEntryKey, stage));
 
-        bottomPanel.getChildren().addAll(btnFowardPage);
+        bottomPanel.getChildren().addAll(btnFowardPage, midPanel, addButton);
         bottomPanel.getStyleClass().add("btn-search-box");
         bottomPanel.setSpacing(5);
         bottomPanel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);

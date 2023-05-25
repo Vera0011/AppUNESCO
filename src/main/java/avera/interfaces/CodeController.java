@@ -1,17 +1,21 @@
 package avera.interfaces;
 
+import avera.code.ListMonuments;
+import avera.interfaces.scenes.ViewRoute;
 import avera.database.DatabaseManager;
-import avera.interfaces.scenes.DescriptionScene;
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-import org.jetbrains.annotations.NotNull;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
 
 import java.util.*;
 
@@ -65,79 +69,63 @@ public final class CodeController
     public static void createGridContentMainScene(GridPane grid, String action)
     {
         int lengthIt = 0;
-        Iterator<String> data;
+        Object[] data;
 
-        if(action.equalsIgnoreCase("normal")) data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name LIMIT 12", "SELECT").keySet().iterator();
+        if(action.equalsIgnoreCase("normal")) data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name LIMIT 12", "SELECT");
         else if(action.equalsIgnoreCase("sum"))
         {
             SKIP += 12;
-            data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name SKIP " + SKIP + " LIMIT 12", "SELECT").keySet().iterator();
+            data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name SKIP " + SKIP + " LIMIT 12", "SELECT");
         }
         else
         {
             SKIP -= 12;
-            data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name SKIP " + SKIP + " LIMIT 12", "SELECT").keySet().iterator();
+            data = DatabaseManager.query("MATCH (n:Monument) RETURN n.name SKIP " + SKIP + " LIMIT 12", "SELECT");
         }
 
         int rowPosition = 0;
 
-        while(data.hasNext())
+        while(data[0] != null && ((Result) data[0]).hasNext())
         {
-            String entry = data.next();
-            RowConstraints row = new RowConstraints();
-            Label nameLabel = new Label(entry);
-            HBox mainBox = new HBox();
-            Button addButton = new Button("Añadir");
-            Button detailsButton = new Button("Ver detalles");
-            HBox containerName = new HBox();
-            HBox containerDescription = new HBox();
-            HBox containerButton = new HBox();
-
-            row.setPrefHeight(50);
-
-            containerName.getStyleClass().addAll("background-items-grid", "background-name-grid");
-            containerName.getChildren().add(nameLabel);
-            containerName.setAlignment(Pos.CENTER_LEFT);
-            containerName.setMaxSize(300, 300);
-            containerName.setPadding(new Insets(10));
-            HBox.setHgrow(containerName, Priority.ALWAYS);
-
-            containerDescription.getStyleClass().addAll("background-items-grid", "background-description-grid");
-            containerDescription.getChildren().add(detailsButton);
-            containerDescription.setAlignment(Pos.CENTER);
-            containerDescription.setMaxSize(300, 300);
-            containerDescription.setPadding(new Insets(10));
-            HBox.setHgrow(containerButton, Priority.ALWAYS);
-            HBox.setHgrow(detailsButton, Priority.ALWAYS);
-
-            detailsButton.setOnMouseClicked(event -> DescriptionScene.openDescriptionWindow(entry));
-
-            detailsButton.getStyleClass().add("btn");
-            detailsButton.setMaxSize(Double.MAX_VALUE, 10);
-
-            containerButton.getStyleClass().addAll("background-items-grid", "background-button-grid");
-            containerButton.getChildren().add(addButton);
-            containerButton.setAlignment(Pos.CENTER);
-            containerButton.setMaxSize(300, 300);
-            containerButton.setPadding(new Insets(10));
-            HBox.setHgrow(containerButton, Priority.ALWAYS);
-            HBox.setHgrow(addButton, Priority.ALWAYS);
-
-            grid.getRowConstraints().add(row);
-
-            addButton.getStyleClass().add("btn");
-            addButton.setMaxSize(Double.MAX_VALUE, 10);
-
-            mainBox.getChildren().addAll(containerName, containerDescription, containerButton);
-            mainBox.setAlignment(Pos.CENTER);
-
-            grid.add(mainBox, 0, rowPosition, 3, 1);
-
+            Components.createGridContent(grid, rowPosition, ((Result) data[0]).next().values().get(0).asString(), "Añadir", "Ver detalles");
             rowPosition++;
             lengthIt++;
         }
 
         finalPage = lengthIt < 12;
+
+        ((Session) data[1]).close();
+    }
+
+    public static void createGridContentRoutes(GridPane grid)
+    {
+        if(ListMonuments.getRoute() != null)
+        {
+            int rowPosition = 0;
+
+            for (String item : ListMonuments.getRoute())
+            {
+                Components.createGridContent(grid, rowPosition, item, "Eliminar", "");
+                ((HBox) grid.getChildren().get(rowPosition)).getChildren().remove(1);
+                HBox hbox = ((HBox) grid.getChildren().get(rowPosition));
+                Node removeButton = hbox.getChildren().get(1);
+
+                removeButton.setOnMouseClicked(null);
+                removeButton.setOnMouseClicked(event -> CodeController.removeRoute(item));
+
+                rowPosition++;
+            }
+        }
+        else
+        {
+            Label lb = new Label("Ruta actual vacia");
+            RowConstraints row = new RowConstraints();
+
+            lb.setAlignment(Pos.BOTTOM_CENTER);
+
+            grid.getRowConstraints().add(row);
+            grid.add(lb, 1, 1, 2, 2);
+        }
     }
 
     /**
@@ -162,24 +150,24 @@ public final class CodeController
      * */
     public static GridPane createGridContentDescriptionScene(GridPane grid, String dataEntryKey)
     {
-        Iterator<Map.Entry<String, List<String>>> it = DatabaseManager.query("MATCH (n:Monument) WHERE n.name = '" + dataEntryKey + "' RETURN " +
-                "n.name, n.description, n.category, n.httplink, n.region, n.state", "SELECT").entrySet().iterator();
+        Object[] result = DatabaseManager.query("MATCH (n:Monument) WHERE n.name = '" + dataEntryKey + "' RETURN n.name, n.description, n.category, " +
+                "n.httplink, n.region, n.state", "SELECT");
         String[] labels = { "Nombre completo:", "Descripcion", "Categoria", "Enlace a web UNESCO", "Region", "Estado(s)" };
+
         int rowPos = 0;
 
-        while(it.hasNext())
+        while(result[0] != null && ((Result) result[0]).hasNext())
         {
-            Map.Entry<String, List<String>> entry = it.next();
-            List<String> list = entry.getValue();
+            Record dataRecord = ((Result) result[0]).next();
+            String[] dataValues = { dataRecord.values().get(0).asString(), dataRecord.values().get(1).asString(), dataRecord.values().get(2).asString(),
+                    dataRecord.values().get(3).asString(), dataRecord.values().get(4).asString(), dataRecord.values().get(5).asString()};
 
-            list.add(0, entry.getKey());
-
-            for (int i = 0; i < list.size(); i++)
+            for (int i = 0; i < dataValues.length; i++)
             {
                 TextArea data;
 
-                if(list.get(i).isBlank()) data = new TextArea("Dato no encontrado");
-                else data = new TextArea(list.get(i));
+                if(dataValues[i].isBlank()) data = new TextArea("Dato no encontrado");
+                else data = new TextArea(dataValues[i]);
 
                 RowConstraints row = new RowConstraints();
                 Label value = new Label(labels[i]);
@@ -221,6 +209,8 @@ public final class CodeController
                 rowPos++;
             }
         }
+
+        ((Session) result[1]).close();
 
         return grid;
     }
@@ -276,5 +266,100 @@ public final class CodeController
         indexPage--;
         if(indexPage < 0) indexPage = 0;
         GuiController.updateScene();
+    }
+
+    /*public static void searchSpecificMonument()
+    {
+
+    }*/
+
+    public static void removeRoute(String entryName)
+    {
+        ListMonuments.removeRoute(entryName);
+        ViewRoute.createViewRoute();
+    }
+
+    public static void getlRoute()
+    {
+        ViewRoute.createViewRoute();
+    }
+
+    public static void addRoute(String name, Stage stage)
+    {
+        ListMonuments.addMonument(name);
+        closeDescriptionWindow(stage);
+    }
+
+    public static void addRoute(String name)
+    {
+        ListMonuments.addMonument(name);
+    }
+
+    public static void createMainGui()
+    {
+        GuiController.start(GuiController.createScene(), "Listado del Patrimonio de la UNESCO");
+    }
+
+    public static void createRoute ()
+    {
+        LinkedList<String> namesMonuments = new LinkedList<>(ListMonuments.getRoute());
+        ListIterator<String> iteratorNode = new ArrayList<>(ListMonuments.getRoute()).listIterator();
+        LinkedList<Double> listDistances = new LinkedList<>();
+        LinkedList<String> finalResult = new LinkedList<>();
+
+        iteratorNode.add(namesMonuments.get(0));
+        namesMonuments.remove(0);
+
+        while(iteratorNode.hasNext())
+        {
+            String nodeSearched = iteratorNode.next();
+
+            for (int i = 0; i < namesMonuments.size(); i++)
+            {
+                if(!nodeSearched.equals(namesMonuments.get(i)))
+                {
+                    Object[] data = DatabaseManager.query("MATCH (n1:Monument)-[r:DISTANCE]-(n2:Monument) WHERE n1.name = '" + nodeSearched +
+                            "' AND n2.name = '" + namesMonuments.get(i) + "' RETURN r.km", "SELECT");
+
+                    if(data[0] != null && ((Result) data[0]).hasNext()) listDistances.add(((Result) data[0]).next().values().get(0).asDouble());
+
+                    ((Session) data[1]).close();
+                }
+            }
+
+            if(listDistances.size() != 0)
+            {
+                int lessDistance = CodeController.getLessDistance(listDistances);
+
+                iteratorNode.add(namesMonuments.get(lessDistance));
+                finalResult.add(namesMonuments.get(lessDistance));
+
+                namesMonuments.remove(lessDistance);
+
+                listDistances.clear();
+            }
+        }
+
+        for (String i:
+             finalResult) {
+            System.out.println(i);
+        }
+    }
+
+    private static int getLessDistance(List<Double> listDistances)
+    {
+        double min = listDistances.get(0);
+        int position = 0;
+
+        for (int i = 1; i < listDistances.size(); i++)
+        {
+            if(listDistances.get(i) < min)
+            {
+                min = listDistances.get(i);
+                position = i;
+            }
+        }
+
+        return position;
     }
 }

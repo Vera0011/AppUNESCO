@@ -1,6 +1,5 @@
 package avera.database;
-import io.github.cdimascio.dotenv.Dotenv;
-import okhttp3.*;
+
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
@@ -13,7 +12,7 @@ import java.util.*;
  *
  * @author Vera
  * */
-public abstract class DatabaseManager implements AutoCloseable
+public final class DatabaseManager implements AutoCloseable
 {
     private static Driver driver;
 
@@ -48,30 +47,15 @@ public abstract class DatabaseManager implements AutoCloseable
      * @throws ClientException If the query is invalid
      * @return ArrayList of the query
      * */
-    public static HashMap<String, List<String>> query(String query, String type) throws ClientException
+    public static Object[] query(String query, String type) throws ClientException
     {
-        HashMap<String, List<String>> list = new HashMap<>();
+        Session session = driver.session();
 
-        try(Session session = driver.session())
+        try
         {
             if(type.equalsIgnoreCase("SELECT"))
             {
-                Result result = session.run(query);
-
-                while (result.hasNext())
-                {
-                    Record entry = result.next();
-                    List<String> listAttributes = new ArrayList<>();
-
-                    for (int i = 1; i < entry.size(); i++)
-                    {
-                        listAttributes.add(entry.get(i).asString());
-                    }
-
-                    list.put(entry.get(0).asString(), listAttributes);
-                }
-
-                return list;
+                return new Object[]{ session.run(query), session };
             }
             else
             {
@@ -79,9 +63,15 @@ public abstract class DatabaseManager implements AutoCloseable
                 {
                     tx.run(query);
                 });
+
+                session.close();
             }
         }
+        catch (Exception e)
+        {
+            System.out.println(e.getMessage());
+        }
 
-        return list;
+        return new Object[]{ null, session };
     }
 }

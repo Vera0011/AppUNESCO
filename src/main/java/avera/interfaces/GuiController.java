@@ -1,12 +1,10 @@
 package avera.interfaces;
 
 import javafx.application.Application;
-import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -18,12 +16,10 @@ import javafx.stage.Stage;
  * @author Vera
  * */
 
-public class GuiController extends Application
+public final class GuiController extends Application
 {
     private static BorderPane mainPanel;
-    private static HBox bottomPanel;
     private static VBox rightPanel;
-    private static GridPane centerPanel;
     private static Stage stageAtt;
     /**
      * Creating Application and main Stage
@@ -45,6 +41,17 @@ public class GuiController extends Application
         stage.setScene(scene);
         stage.setTitle("Listado del Patrimonio de la UNESCO");
         stage.show();
+    }
+
+    public static void start(Scene scene, String title)
+    {
+        scene.getStylesheets().add(GuiController.class.getResource("/styles.css").toExternalForm());
+
+        stageAtt.resizableProperty().setValue(false);
+        stageAtt.getIcons().add(new Image("/icons/main.png"));
+        stageAtt.setScene(scene);
+        stageAtt.setTitle(title);
+        stageAtt.show();
     }
 
     /**
@@ -93,9 +100,8 @@ public class GuiController extends Application
 
     public static HBox createTop()
     {
-        HBox topPanel = new HBox();
+        HBox topPanel = Components.createTop("Lugares Disponibles");
         Button displayContent = new Button();
-        Label title = new Label("Lugares Disponibles");
         ImageView imageButton = new ImageView("/icons/displayContent_modified.png");
 
         imageButton.setFitWidth(25);
@@ -109,18 +115,8 @@ public class GuiController extends Application
         /* Event Handler */
         displayContent.setOnMouseClicked(event -> CodeController.displayRightPanel(rightPanel, mainPanel));
 
-        title.getStyleClass().add("title");
-        title.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        HBox.setHgrow(title, Priority.ALWAYS);
-        title.setAlignment(Pos.CENTER);
-        title.setPadding(new Insets(10));
-
-        topPanel.getChildren().addAll(title, displayContent);
-        topPanel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        HBox.setHgrow(topPanel, Priority.ALWAYS);
-        topPanel.setAlignment(Pos.CENTER);
-        topPanel.setPadding(new Insets(5));
-        topPanel.getStyleClass().add("title-hbox");
+        topPanel.getChildren().remove(0);
+        topPanel.getChildren().add(displayContent);
 
         return topPanel;
     }
@@ -133,27 +129,26 @@ public class GuiController extends Application
     public static VBox createRight()
     {
         rightPanel = new VBox();
-        Button verRuta = new Button("Ver ruta actual");
-        Button verRutasAntiguas = new Button("Ver antiguas rutas");
-        Button searchMonumentos = new Button("Buscar");
+        Button seeRoute = new Button("Ver ruta actual");
+        //Button searchMonuments = new Button("Buscar");
 
-        verRuta.setMaxSize(Double.MAX_VALUE, 50);
-        verRuta.getStyleClass().add("btn");
-        verRutasAntiguas.setMaxSize(Double.MAX_VALUE, 50);
-        verRutasAntiguas.getStyleClass().add("btn");
-        searchMonumentos.setMaxSize(Double.MAX_VALUE, 50);
-        searchMonumentos.getStyleClass().add("btn");
+        seeRoute.setMaxSize(Double.MAX_VALUE, 50);
+        seeRoute.getStyleClass().add("btn");
+        /*searchMonuments.setMaxSize(Double.MAX_VALUE, 50);
+        searchMonuments.getStyleClass().add("btn");*/
 
         VBox.setVgrow(rightPanel, Priority.ALWAYS);
-        VBox.setVgrow(verRuta, Priority.ALWAYS);
-        VBox.setVgrow(verRutasAntiguas, Priority.ALWAYS);
-        VBox.setVgrow(searchMonumentos, Priority.ALWAYS);
+        VBox.setVgrow(seeRoute, Priority.ALWAYS);
+        //VBox.setVgrow(searchMonuments, Priority.ALWAYS);
+
+        seeRoute.setOnMouseClicked(event -> CodeController.getlRoute());
+        //searchMonuments.setOnMouseClicked(event -> CodeController.searchSpecificMonument());
 
         rightPanel.setSpacing(15);
         rightPanel.setAlignment(Pos.TOP_CENTER);
         rightPanel.setPadding(new Insets(5));
         rightPanel.setPrefSize(150, 150);
-        rightPanel.getChildren().addAll(verRuta, verRutasAntiguas, searchMonumentos);
+        rightPanel.getChildren().addAll(seeRoute/*, searchMonuments*/);
         rightPanel.getStyleClass().add("right-panel");
 
         return rightPanel;
@@ -166,36 +161,13 @@ public class GuiController extends Application
      * */
     public static GridPane createCenter()
     {
-        centerPanel = new GridPane();
-
-        /* Grid Styling */
-        centerPanel.setAlignment(Pos.TOP_CENTER);
-        centerPanel.setVgap(5);
-        centerPanel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        centerPanel.setPadding(new Insets(10));
-
-        /* Creating Constraints */
-        ColumnConstraints nameCol = new ColumnConstraints();
-        ColumnConstraints directionColumn = new ColumnConstraints();
-        ColumnConstraints addColumn = new ColumnConstraints();
-
-        nameCol.setHalignment(HPos.CENTER);
-        nameCol.setHgrow(Priority.ALWAYS);
-
-        directionColumn.setHgrow(Priority.ALWAYS);
-        directionColumn.setHalignment(HPos.CENTER);
-
-        addColumn.setHgrow(Priority.ALWAYS);
-        addColumn.setHalignment(HPos.CENTER);
-
-        centerPanel.getColumnConstraints().addAll(nameCol, directionColumn, addColumn);
-
+        GridPane centerPanel = Components.createCenterMain();
         int indexPage = CodeController.getIndex()[0];
         int indexPreviousPage = CodeController.getIndex()[1];
 
         if(CodeController.getFinalPage()) CodeController.createGridContentMainScene(centerPanel, "");
         else if(indexPage == 0) CodeController.createGridContentMainScene(centerPanel, "normal");
-        else if(indexPage >= 1 && (indexPage == 1 +indexPreviousPage)) CodeController.createGridContentMainScene(centerPanel, "sum");
+        else if(indexPage >= 1 && (indexPage == 1 + indexPreviousPage)) CodeController.createGridContentMainScene(centerPanel, "sum");
         else CodeController.createGridContentMainScene(centerPanel, "");
 
         return centerPanel;
@@ -209,43 +181,11 @@ public class GuiController extends Application
     public static HBox createBottom()
     {
         int indexPage = CodeController.getIndex()[0];
-        Button btnSearch = new Button("Buscar");
-        Button btnNextPage = new Button();
-        ImageView imageButton = new ImageView("/icons/nextPage.png");
-        Button btnPreviousPage = new Button();
-        ImageView imageButton2 = new ImageView("/icons/fowardPage.png");
-        bottomPanel = new HBox();
+        HBox box =  Components.createBottomMain();
 
-        imageButton.setFitWidth(25);
-        imageButton.setFitHeight(25);
-        imageButton2.setFitHeight(25);
-        imageButton2.setFitHeight(25);
+        if(CodeController.getFinalPage()) box.getChildren().remove(2);
+        else if(indexPage == 0) box.getChildren().remove(0);
 
-        btnSearch.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        btnSearch.getStyleClass().add("btn");
-
-        btnNextPage.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        btnNextPage.getStyleClass().add("btn");
-        btnNextPage.setGraphic(imageButton);
-
-        btnPreviousPage.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        btnPreviousPage.getStyleClass().add("btn");
-        btnPreviousPage.setGraphic(imageButton2);
-
-        btnNextPage.setOnMouseClicked(event -> CodeController.nextPage());
-        btnPreviousPage.setOnMouseClicked(event -> CodeController.previousPage());
-
-        bottomPanel.getStyleClass().add("btn-search-box");
-        bottomPanel.setSpacing(5);
-        bottomPanel.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        bottomPanel.setPadding(new Insets(10, 10, 10, 10));
-        HBox.setHgrow(btnSearch, Priority.ALWAYS);
-        HBox.setHgrow(bottomPanel, Priority.ALWAYS);
-
-        if(CodeController.getFinalPage()) bottomPanel.getChildren().addAll(btnPreviousPage, btnSearch);
-        else if(indexPage == 0) bottomPanel.getChildren().addAll(btnSearch, btnNextPage);
-        else bottomPanel.getChildren().addAll(btnPreviousPage, btnSearch, btnNextPage);
-
-        return bottomPanel;
+        return box;
     }
 }

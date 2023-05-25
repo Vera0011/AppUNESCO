@@ -7,7 +7,7 @@ import avera.interfaces.GuiController;
  *
  * @author Vera
  */
-public class Main
+public final class Main
 {
     /**
      * Main entry of the Application
