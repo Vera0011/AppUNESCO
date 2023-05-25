@@ -1,12 +1,14 @@
 package avera.interfaces;
 
 import avera.code.ListMonuments;
+import avera.interfaces.scenes.MessageDisplayer;
 import avera.interfaces.scenes.ViewRoute;
 import avera.database.DatabaseManager;
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.*;
@@ -15,7 +17,6 @@ import javafx.stage.Stage;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
-import org.neo4j.driver.Value;
 
 import java.util.*;
 
@@ -308,6 +309,7 @@ public final class CodeController
         LinkedList<String> finalResult = new LinkedList<>();
 
         iteratorNode.add(namesMonuments.get(0));
+        finalResult.add(namesMonuments.get(0));
         namesMonuments.remove(0);
 
         while(iteratorNode.hasNext())
@@ -340,10 +342,17 @@ public final class CodeController
             }
         }
 
-        for (String i:
-             finalResult) {
-            System.out.println(i);
+        StringBuilder finalMessage = new StringBuilder();
+        int counter = 1;
+
+        for (String i : finalResult)
+        {
+            finalMessage.append(counter).append(" - ").append(i).append("\n");
+            counter++;
         }
+
+        MessageDisplayer.displayMessage("Ruta realizada",
+                "La ruta mas corta es yendo en el siguiente orden:\n\n", Alert.AlertType.INFORMATION, finalMessage.toString());
     }
 
     private static int getLessDistance(List<Double> listDistances)

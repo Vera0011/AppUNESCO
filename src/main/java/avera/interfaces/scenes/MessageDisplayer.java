@@ -2,9 +2,9 @@ package avera.interfaces.scenes;
 
 import javafx.scene.control.Alert;
 
-public class ErrorDisplayer
+public class MessageDisplayer
 {
-    public static void displayError(String titleMessage, String headerMessage, Alert.AlertType typeAlert, String contextMessage)
+    public static void displayMessage (String titleMessage, String headerMessage, Alert.AlertType typeAlert, String contextMessage)
     {
         Alert alert = new Alert(typeAlert);
         alert.setTitle(titleMessage);

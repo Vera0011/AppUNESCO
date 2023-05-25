@@ -1,7 +1,7 @@
 package avera.code;
 
 import javafx.scene.control.Alert;
-import avera.interfaces.scenes.ErrorDisplayer;
+import avera.interfaces.scenes.MessageDisplayer;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -19,7 +19,7 @@ public class ListMonuments
 
         if(actualRoute.size() > 15)
         {
-            ErrorDisplayer.displayError("Error añadiendo un monumento", null, Alert.AlertType.ERROR, "La máxima longotud permitida es de 15 monumentos");
+            MessageDisplayer.displayMessage("Error añadiendo un monumento", null, Alert.AlertType.ERROR, "La máxima longotud permitida es de 15 monumentos");
         }
         else actualRoute.add(monumentName);
     }

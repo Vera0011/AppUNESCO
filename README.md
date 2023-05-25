@@ -8,7 +8,6 @@ Tecnologías implementadas:
 - Lenguaje: Java
 - API's o módulos:
     - JavaFX
-    - Google Maps (Distance Matrix API)
     - DotEnv
 ```
 
